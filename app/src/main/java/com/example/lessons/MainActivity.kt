@@ -15,8 +15,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lessons.components.MarkerCard
+import com.example.lessons.database.MarkerService
 import com.example.lessons.models.Marker
 import com.example.lessons.ui.theme.LessonsTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +41,18 @@ class MainActivity : ComponentActivity() {
                         }
                     }) {
                         Column() {
-                            Button(onClick = { }) {
+                            Button(onClick = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val retrofit = Retrofit
+                                        .Builder()
+                                        .baseUrl("https://itcube.goykt.ru/")
+                                        .addConverterFactory(GsonConverterFactory.create())
+                                        .build()
+                                    val result = retrofit.create(MarkerService::class.java).getMarkers().execute()
+                                    val newMakers: List<Marker> = result.body() as List<Marker>
+                                    markers.value = newMakers
+                                }
+                            }) {
                                 Text(text = "Получить маркеры")
                             }
                             for (marker in markers.value) {
